@@ -1,0 +1,79 @@
+ashareeod: # 此处的key对应src文件夹中的文件名，因此必须和src中保持一致且区分大小写，即module名字；
+    meta: 
+        # 所有人
+        owner: chenwx
+        # 供应商名称：wind/datayes, etc.
+        supplier: wind
+        # 供应商数据分类：通联Level2、万得level2数据, etc.
+        sup_category: eod
+        # 供应商数据名称：finance/fundamental/anylyst, etc.
+        sup_tablename: ASHAREEODPRICES
+        # 类名
+        classname: AShareEODPrices # ashareeod.AShareEODPrices
+        # 输入数据的形式：db/file/api，默认为db
+        extractor: 
+            DatabaseExtractor: # 共有以下几种分类，DatabaseExtractor/ApiExtractor/FileExtractor/FilefromDirGerator，分别表示从数据库、Api，文件，文件夹中所有文件中抽取数据
+                data: 
+                    host: db2.wydata.com
+                    port: 3306
+                    user: chenwenxian_read
+                    passwd: chenwenxian_read
+                    database: wind
+                    tablename: ASHAREEODPRICES
+                    database_type: mysql
+                    exec_params: # optional, if not setted, query table according to sql: select * from ${tablename} where OPDATE=${today-task.run_shift} if natural else OPDATE=${last nth business day,n=task.run_shift}
+                        # method 1:
+                        sql: select * from ASHAREEODPRICES where TRADE_DT=${today.b.1} # b means business day(n: natural day), 1 means lag 1
+                        # method 2:
+                        selected_cols: ${ALL} # if there're columns to be selected
+                        conditions: 
+                            -
+                                column: TRADE_DT
+                                comarator: '='
+                                value: ${today.b.1}
+                                connect: and
+                            -
+                                column: TRADE_DT
+                                comarator: '='
+                                value: ${today.b.1}
+                                connect: or
+                        orders:
+                            -
+                                column: TRADE_DT
+                                order: ASC   # ASC: ascending, DES: descending
+        # 数据名称，用户自定义
+        dataname: kBar
+        # 数据起始日期
+        data_start_date: 20100101
+        # 数据的频率：intra/daily, etc. 默认daily
+        data_frequency: daily
+        # 输出数据文件路径
+        loader:
+            DatabaseLoader:
+                wind: 
+                    host: test1.wymysql.com
+                    port: 3306
+                    user: yangp
+                    passwd: yangp@2023
+                    db: pyang_test
+                    tablename: kBar
+                    database: mysql
+    task:
+        # 数据运行更新时间
+        runtime: 00 01 * * 1-5
+        # 超过该时间，任务未启动则发送警告给receivers
+        # 依赖的任务
+        dependency: 
+        # 超时未启动提醒
+        start_by: 10
+        # 程序完成时间，超过该时间则将警告发送给相关人，由dev保守估计任务所需时间，设置
+        ready_by: 06:00:00
+        # 是否仅交易日更新
+        only_trade_day: 1
+        # 漂移类型：b: 
+        shift_type: b
+        # 更新运行时间与数据对应日期的滞后天数，默认为0，可以为负值
+        shift_days: 1
+        # task信息接收人
+        receivers: yangp@wanyantech.com, liy@wanyantech.com
+            
